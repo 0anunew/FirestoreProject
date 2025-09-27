@@ -8,6 +8,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 
 class MainActivity : AppCompatActivity() {
@@ -18,7 +19,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var saveButton: Button
     private lateinit var loadButton: Button
     private val dbStore: FirebaseFirestore = FirebaseFirestore.getInstance()
-
+    private val docRef : DocumentReference = dbStore.collection("Collection").document("First Document")
     private val titleKey = "title"
     private val descriptionKey = "description"
 
@@ -86,7 +87,7 @@ class MainActivity : AppCompatActivity() {
             titleKey to title,
             descriptionKey to description
         )
-        dbStore.collection("Collection").document("First Document").set(docData).addOnSuccessListener {
+        docRef.set(docData).addOnSuccessListener {
             Toast.makeText(this, "Data saved", Toast.LENGTH_SHORT).show()
             loadButton.isEnabled = true
         }.addOnFailureListener {
@@ -95,7 +96,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun loadData(){
-        dbStore.collection("Collection").document("First Document").get().addOnSuccessListener {
+        docRef.get().addOnSuccessListener {
             if (it != null) {
                 val title = it.getString(titleKey)
                 val description = it.getString(descriptionKey)
