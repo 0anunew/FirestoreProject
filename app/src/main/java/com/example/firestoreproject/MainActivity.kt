@@ -1,6 +1,8 @@
 package com.example.firestoreproject
 
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.widget.*
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -32,8 +34,14 @@ class MainActivity : AppCompatActivity() {
         textViewData = findViewById(R.id.text_view_data)
         loadButton = findViewById(R.id.button_load)
 
+        titleText.addTextChangedListener(textWatcher)
+        descriptionText.addTextChangedListener(textWatcher)
+
+        saveButton.isEnabled = false
+        loadButton.isEnabled = false
+
         saveButton.setOnClickListener {
-           saveData()
+            saveData()
         }
 
         loadButton.setOnClickListener {
@@ -46,6 +54,31 @@ class MainActivity : AppCompatActivity() {
             insets
         }
     }
+
+    private val textWatcher = object : TextWatcher {
+        override fun afterTextChanged(s: Editable?) {
+            val inputtedUsername = titleText.text.toString().trim()
+            val inputtedPassword = descriptionText.text.toString().trim()
+            saveButton.isEnabled = inputtedUsername.isNotEmpty() && inputtedPassword.isNotEmpty()
+        }
+
+        override fun beforeTextChanged(
+            s: CharSequence?,
+            start: Int,
+            count: Int,
+            after: Int
+        ) {
+        }
+
+        override fun onTextChanged(
+            s: CharSequence?,
+            start: Int,
+            before: Int,
+            count: Int
+        ) {
+            saveButton.isEnabled = titleText.text.isNotEmpty() && descriptionText.text.isNotEmpty()
+        }
+    }
     fun saveData() {
         val title = titleText.text.toString()
         val description = descriptionText.text.toString()
@@ -55,6 +88,7 @@ class MainActivity : AppCompatActivity() {
         )
         dbStore.collection("Collection").document("First Document").set(docData).addOnSuccessListener {
             Toast.makeText(this, "Data saved", Toast.LENGTH_SHORT).show()
+            loadButton.isEnabled = true
         }.addOnFailureListener {
             Toast.makeText(this, "Error", Toast.LENGTH_SHORT).show()
         }
@@ -70,6 +104,7 @@ class MainActivity : AppCompatActivity() {
             }
         }.addOnFailureListener {
             Toast.makeText(this, "Error", Toast.LENGTH_SHORT).show()
+            loadButton.isEnabled = false
         }
     }
 }
