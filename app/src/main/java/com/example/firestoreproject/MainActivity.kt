@@ -17,8 +17,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var loadButton: Button
     private val dbStore: FirebaseFirestore = FirebaseFirestore.getInstance()
 
-    private val TITLE = "title"
-    private val DESCRIPTION = "description"
+    private val titleKey = "title"
+    private val descriptionKey = "description"
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,8 +50,8 @@ class MainActivity : AppCompatActivity() {
         val title = titleText.text.toString()
         val description = descriptionText.text.toString()
         val docData = mutableMapOf<String, Any>(
-            TITLE to title,
-            DESCRIPTION to description
+            titleKey to title,
+            descriptionKey to description
         )
         dbStore.collection("Collection").document("First Document").set(docData).addOnSuccessListener {
             Toast.makeText(this, "Data saved", Toast.LENGTH_SHORT).show()
@@ -63,8 +63,8 @@ class MainActivity : AppCompatActivity() {
     fun loadData(){
         dbStore.collection("Collection").document("First Document").get().addOnSuccessListener {
             if (it != null) {
-                val title = it.getString(TITLE)
-                val description = it.getString(DESCRIPTION)
+                val title = it.getString(titleKey)
+                val description = it.getString(descriptionKey)
                 val loadText = "Title: $title\nDescription: $description"
                 textViewData.text = loadText
             }
