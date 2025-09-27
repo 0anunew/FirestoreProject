@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16sp"
+    android:gravity="center"
+    tools:context=".MainActivity">
+
+    <EditText
+        android:id="@+id/edit_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16sp"
+        android:autofillHints="Name"
+        android:hint="@string/edit_text_title_hint"/>
+
+    <EditText
+        android:id="@+id/edit_description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:autofillHints="Description"
+        android:layout_margin="16sp"
+        android:hint="@string/edit_text_description_hint"/>
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/button_save"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/button_save"
+        android:layout_marginTop="16sp"
+        />
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/button_load"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/button_load"
+        android:layout_marginTop="16sp"
+        />
+
+    <TextView
+        android:id="@+id/text_view_data"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
+</androidx.appcompat.widget.LinearLayoutCompat>

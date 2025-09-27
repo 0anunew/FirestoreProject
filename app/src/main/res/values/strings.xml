@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">FirestoreProject</string>
+    <string name="edit_text_title_hint">Enter Title</string>
+    <string name="edit_text_description_hint">Enter Description</string>
+    <string name="button_save">Save</string>
+    <string name="button_load">Load</string>
+</resources>
