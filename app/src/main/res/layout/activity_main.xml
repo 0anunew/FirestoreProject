@@ -41,12 +41,19 @@
         android:text="@string/button_load"
         android:layout_marginTop="16sp"
         />
-
     <TextView
         android:id="@+id/text_view_data"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:padding="10sp"
         android:textSize="30sp"/>
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/button_delete"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/button_delete"
+        android:layout_marginTop="16sp"
+        />
 
 </androidx.appcompat.widget.LinearLayoutCompat>

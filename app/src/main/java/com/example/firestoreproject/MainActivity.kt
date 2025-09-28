@@ -6,8 +6,10 @@ import android.text.TextWatcher
 import android.widget.*
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.AppCompatButton
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.example.firestoreproject.classes.Document
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -16,12 +18,12 @@ class MainActivity : AppCompatActivity() {
     private lateinit var titleText: EditText
     private lateinit var descriptionText: EditText
     private lateinit var textViewData: TextView
-    private lateinit var saveButton: Button
-    private lateinit var loadButton: Button
+    private lateinit var saveButton: AppCompatButton
+    private lateinit var loadButton: AppCompatButton
+    private lateinit var deleteButton: AppCompatButton
     private val dbStore: FirebaseFirestore = FirebaseFirestore.getInstance()
-    private val docRef : DocumentReference = dbStore.collection("Collection").document("First Document")
-    private val titleKey = "title"
-    private val descriptionKey = "description"
+    private val docRef: DocumentReference =
+        dbStore.collection("Collection").document("First Document")
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -34,6 +36,7 @@ class MainActivity : AppCompatActivity() {
         saveButton = findViewById(R.id.button_save)
         textViewData = findViewById(R.id.text_view_data)
         loadButton = findViewById(R.id.button_load)
+        deleteButton = findViewById(R.id.button_delete)
 
         titleText.addTextChangedListener(textWatcher)
         descriptionText.addTextChangedListener(textWatcher)
@@ -47,6 +50,9 @@ class MainActivity : AppCompatActivity() {
 
         loadButton.setOnClickListener {
             loadData()
+        }
+        deleteButton.setOnClickListener {
+            deleteData()
         }
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
@@ -80,32 +86,73 @@ class MainActivity : AppCompatActivity() {
             saveButton.isEnabled = titleText.text.isNotEmpty() && descriptionText.text.isNotEmpty()
         }
     }
+
+    override fun onStart() {
+        super.onStart()
+        //this will remove the listener automatically when the activity is destroyed in onStop
+        docRef.addSnapshotListener(this) { snapshot, dbError ->
+            dbError?.let {
+                return@addSnapshotListener
+            }
+            snapshot?.let {
+                if (it.exists()) {
+                    loadData()
+                }
+            }
+        }
+    }
+
+    fun enableButtons() {
+        loadButton.isEnabled = true
+        deleteButton.isEnabled = true
+    }
+
+    fun disableButtons() {
+        loadButton.isEnabled = false
+        deleteButton.isEnabled = false
+    }
+
     fun saveData() {
         val title = titleText.text.toString()
         val description = descriptionText.text.toString()
-        val docData = mutableMapOf<String, Any>(
-            titleKey to title,
-            descriptionKey to description
-        )
+
+        val docData = Document(title,description)
+
         docRef.set(docData).addOnSuccessListener {
             Toast.makeText(this, "Data saved", Toast.LENGTH_SHORT).show()
-            loadButton.isEnabled = true
+            enableButtons()
         }.addOnFailureListener {
             Toast.makeText(this, "Error", Toast.LENGTH_SHORT).show()
         }
     }
 
-    fun loadData(){
+    fun loadData() {
         docRef.get().addOnSuccessListener {
             if (it != null) {
-                val title = it.getString(titleKey)
-                val description = it.getString(descriptionKey)
+                val docData = it.toObject(Document::class.java)
+                val title = docData?.title
+                val description = docData?.description
+
                 val loadText = "Title: $title\nDescription: $description"
                 textViewData.text = loadText
             }
         }.addOnFailureListener {
             Toast.makeText(this, "Error", Toast.LENGTH_SHORT).show()
-            loadButton.isEnabled = false
+            disableButtons()
+        }
+    }
+
+    fun deleteData() {
+        docRef.get().addOnSuccessListener {
+            if (it != null) {
+                docRef.delete().addOnSuccessListener {
+                    Toast.makeText(this, "Data deleted", Toast.LENGTH_SHORT).show()
+                    disableButtons()
+                    textViewData.text = ""
+                }.addOnFailureListener {
+                    Toast.makeText(this, "Error", Toast.LENGTH_SHORT).show()
+                }
+            }
         }
     }
 }
