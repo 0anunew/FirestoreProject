@@ -11,7 +11,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.firestoreproject.classes.Document
 import com.google.firebase.firestore.CollectionReference
-import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 
 class MainActivity : AppCompatActivity() {
@@ -25,9 +25,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var deleteButton: AppCompatButton
     private lateinit var deleteAllButton: AppCompatButton
     private val dbStore: FirebaseFirestore = FirebaseFirestore.getInstance()
-    private val docRef: DocumentReference =
-        dbStore.collection("Collection").document("First Document")
-
     private val docCollectionRef: CollectionReference = dbStore.collection("Collection")
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -58,7 +55,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         loadButton.setOnClickListener {
-            loadAllDocuments()
+            loadAllDocumentsAndShow()
         }
         deleteButton.setOnClickListener {
             deleteData()
@@ -101,14 +98,15 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
+        disableButtonsAndRefresh()
         //this will remove the listener automatically when the activity is destroyed in onStop
-        docRef.addSnapshotListener(this) { snapshot, dbError ->
+        docCollectionRef.addSnapshotListener(this) { snapshot, dbError ->
             dbError?.let {
                 return@addSnapshotListener
             }
             snapshot?.let {
-                if (it.exists()) {
-                    loadAllDocuments()
+                if (!it.isEmpty()) {
+                    loadAllDocumentsAndShow()
                 }
             }
         }
@@ -138,27 +136,36 @@ class MainActivity : AppCompatActivity() {
         val docData = Document(title, description)
         docCollectionRef.add(docData).addOnSuccessListener {
             Toast.makeText(this, "Data saved", Toast.LENGTH_SHORT).show()
-            titleText.text.clear()
-            descriptionText.text.clear()
-            enableButtons()
         }.addOnSuccessListener {
             Toast.makeText(this, "Error", Toast.LENGTH_SHORT).show()
         }
+        titleText.text.clear()
+        descriptionText.text.clear()
+        enableButtons()
+        loadAllDocumentsAndShow()
     }
 
     fun updateDocumentData() {
         val title = titleText.text.toString()
         val description = descriptionText.text.toString()
         val docData = Document(title,description)
-        docRef.set(docData).addOnSuccessListener {
-            Toast.makeText(this, "Data updated", Toast.LENGTH_SHORT).show()
-        }.addOnSuccessListener {
+
+        docCollectionRef.get().addOnSuccessListener { result ->
+            val documents = result.documents
+            if (documents.isNotEmpty()) {
+                val lastDocument: DocumentSnapshot = documents[documents.size - 1]
+                lastDocument.reference.set(docData).addOnSuccessListener {
+                    Toast.makeText(this, "Data updated", Toast.LENGTH_SHORT).show()
+                }.addOnFailureListener {
+                    Toast.makeText(this, "Error", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }.addOnFailureListener {
             Toast.makeText(this, "Error", Toast.LENGTH_SHORT).show()
         }
     }
 
-
-    fun loadAllDocuments() {
+    fun loadAllDocumentsAndShow() {
         docCollectionRef.get().addOnSuccessListener { result ->
             val stringBuilder = StringBuilder()
             val documents = result.documents
@@ -187,14 +194,18 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun deleteData() {
-        docRef.get().addOnSuccessListener {
-            if (it != null) {
-                docRef.delete().addOnSuccessListener {
+        docCollectionRef.get().addOnSuccessListener { result ->
+            val documents = result.documents
+            if (documents.isNotEmpty()) {
+                val lastDocument = documents[documents.size - 1]
+                lastDocument.reference.delete().addOnSuccessListener {
                     Toast.makeText(this, "Data deleted", Toast.LENGTH_SHORT).show()
                 }.addOnFailureListener {
                     Toast.makeText(this, "Error", Toast.LENGTH_SHORT).show()
                 }
             }
+        }.addOnFailureListener {
+            Toast.makeText(this, "Error", Toast.LENGTH_SHORT).show()
         }
     }
 }
