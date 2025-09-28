@@ -10,6 +10,7 @@ import androidx.appcompat.widget.AppCompatButton
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.firestoreproject.classes.Document
+import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -18,13 +19,16 @@ class MainActivity : AppCompatActivity() {
     private lateinit var titleText: EditText
     private lateinit var descriptionText: EditText
     private lateinit var textViewData: TextView
-    private lateinit var saveButton: AppCompatButton
+    private lateinit var addButton: AppCompatButton
+    private lateinit var updateButton: AppCompatButton
     private lateinit var loadButton: AppCompatButton
     private lateinit var deleteButton: AppCompatButton
+    private lateinit var deleteAllButton: AppCompatButton
     private val dbStore: FirebaseFirestore = FirebaseFirestore.getInstance()
     private val docRef: DocumentReference =
         dbStore.collection("Collection").document("First Document")
 
+    private val docCollectionRef: CollectionReference = dbStore.collection("Collection")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,26 +37,34 @@ class MainActivity : AppCompatActivity() {
 
         titleText = findViewById(R.id.edit_title)
         descriptionText = findViewById(R.id.edit_description)
-        saveButton = findViewById(R.id.button_save)
+        addButton = findViewById(R.id.button_add)
+        updateButton = findViewById(R.id.button_update)
         textViewData = findViewById(R.id.text_view_data)
         loadButton = findViewById(R.id.button_load)
         deleteButton = findViewById(R.id.button_delete)
+        deleteAllButton = findViewById(R.id.button_delete_all)
 
         titleText.addTextChangedListener(textWatcher)
         descriptionText.addTextChangedListener(textWatcher)
 
-        saveButton.isEnabled = false
+        addButton.isEnabled = false
         loadButton.isEnabled = false
 
-        saveButton.setOnClickListener {
-            saveData()
+        addButton.setOnClickListener {
+            addNewDocumentData()
+        }
+        updateButton.setOnClickListener {
+            updateDocumentData()
         }
 
         loadButton.setOnClickListener {
-            loadData()
+            loadAllDocuments()
         }
         deleteButton.setOnClickListener {
             deleteData()
+        }
+        deleteAllButton.setOnClickListener {
+            deleteAllDocuments()
         }
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
@@ -66,7 +78,7 @@ class MainActivity : AppCompatActivity() {
         override fun afterTextChanged(s: Editable?) {
             val inputtedUsername = titleText.text.toString().trim()
             val inputtedPassword = descriptionText.text.toString().trim()
-            saveButton.isEnabled = inputtedUsername.isNotEmpty() && inputtedPassword.isNotEmpty()
+            addButton.isEnabled = inputtedUsername.isNotEmpty() && inputtedPassword.isNotEmpty()
         }
 
         override fun beforeTextChanged(
@@ -83,7 +95,7 @@ class MainActivity : AppCompatActivity() {
             before: Int,
             count: Int
         ) {
-            saveButton.isEnabled = titleText.text.isNotEmpty() && descriptionText.text.isNotEmpty()
+            addButton.isEnabled = titleText.text.isNotEmpty() && descriptionText.text.isNotEmpty()
         }
     }
 
@@ -96,7 +108,7 @@ class MainActivity : AppCompatActivity() {
             }
             snapshot?.let {
                 if (it.exists()) {
-                    loadData()
+                    loadAllDocuments()
                 }
             }
         }
@@ -105,41 +117,73 @@ class MainActivity : AppCompatActivity() {
     fun enableButtons() {
         loadButton.isEnabled = true
         deleteButton.isEnabled = true
+        updateButton.isEnabled = true
+        deleteAllButton.isEnabled = true
     }
 
-    fun disableButtons() {
+    fun disableButtonsAndRefresh() {
         loadButton.isEnabled = false
         deleteButton.isEnabled = false
+        updateButton.isEnabled = false
+        textViewData.text = ""
+        titleText.text.clear()
+        descriptionText.text.clear()
+        deleteAllButton.isEnabled = false
     }
 
-    fun saveData() {
+    fun addNewDocumentData() {
         val title = titleText.text.toString()
         val description = descriptionText.text.toString()
 
-        val docData = Document(title,description)
-
-        docRef.set(docData).addOnSuccessListener {
+        val docData = Document(title, description)
+        docCollectionRef.add(docData).addOnSuccessListener {
             Toast.makeText(this, "Data saved", Toast.LENGTH_SHORT).show()
+            titleText.text.clear()
+            descriptionText.text.clear()
             enableButtons()
-        }.addOnFailureListener {
+        }.addOnSuccessListener {
             Toast.makeText(this, "Error", Toast.LENGTH_SHORT).show()
         }
     }
 
-    fun loadData() {
-        docRef.get().addOnSuccessListener {
-            if (it != null) {
-                val docData = it.toObject(Document::class.java)
+    fun updateDocumentData() {
+        val title = titleText.text.toString()
+        val description = descriptionText.text.toString()
+        val docData = Document(title,description)
+        docRef.set(docData).addOnSuccessListener {
+            Toast.makeText(this, "Data updated", Toast.LENGTH_SHORT).show()
+        }.addOnSuccessListener {
+            Toast.makeText(this, "Error", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+
+    fun loadAllDocuments() {
+        docCollectionRef.get().addOnSuccessListener { result ->
+            val stringBuilder = StringBuilder()
+            val documents = result.documents
+            for (document in documents) {
+                val docData = document.toObject(Document::class.java)
                 val title = docData?.title
                 val description = docData?.description
-
-                val loadText = "Title: $title\nDescription: $description"
-                textViewData.text = loadText
+                val loadText = "Title: $title\nDescription: $description\n\n"
+                stringBuilder.append(loadText)
             }
-        }.addOnFailureListener {
-            Toast.makeText(this, "Error", Toast.LENGTH_SHORT).show()
-            disableButtons()
+            textViewData.text = stringBuilder.toString()
         }
+    }
+
+    fun deleteAllDocuments() {
+        docCollectionRef.get().addOnSuccessListener { result ->
+            val documents = result.documents
+            for (document in documents) {
+                document.reference.delete()
+            }
+            Toast.makeText(this, "All data deleted", Toast.LENGTH_SHORT).show()
+        } .addOnFailureListener {
+            Toast.makeText(this, "Error", Toast.LENGTH_SHORT).show()
+        }
+        disableButtonsAndRefresh()
     }
 
     fun deleteData() {
@@ -147,8 +191,6 @@ class MainActivity : AppCompatActivity() {
             if (it != null) {
                 docRef.delete().addOnSuccessListener {
                     Toast.makeText(this, "Data deleted", Toast.LENGTH_SHORT).show()
-                    disableButtons()
-                    textViewData.text = ""
                 }.addOnFailureListener {
                     Toast.makeText(this, "Error", Toast.LENGTH_SHORT).show()
                 }

@@ -2,7 +2,9 @@
     <string name="app_name">FirestoreProject</string>
     <string name="edit_text_title_hint">Enter Title</string>
     <string name="edit_text_description_hint">Enter Description</string>
-    <string name="button_save">Save</string>
+    <string name="button_add">Add</string>
+    <string name="button_update">Update</string>
     <string name="button_load">Load</string>
     <string name="button_delete">Delete</string>
+    <string name="button_delete_all">Delete All</string>
 </resources>

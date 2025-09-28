@@ -4,9 +4,9 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:gravity="center|top"
     android:orientation="vertical"
     android:padding="16sp"
-    android:gravity="center"
     tools:context=".MainActivity">
 
     <EditText
@@ -15,45 +15,69 @@
         android:layout_height="wrap_content"
         android:layout_margin="16sp"
         android:autofillHints="Name"
-        android:inputType="text"
-        android:hint="@string/edit_text_title_hint"/>
+        android:hint="@string/edit_text_title_hint"
+        android:inputType="text" />
 
     <EditText
         android:id="@+id/edit_description"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:autofillHints="Description"
         android:layout_margin="16sp"
-        android:inputType="textMultiLine"
-        android:hint="@string/edit_text_description_hint"/>
+        android:autofillHints="Description"
+        android:hint="@string/edit_text_description_hint"
+        android:inputType="textMultiLine" />
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="5sp"
+        android:layout_marginTop="16sp">
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/button_add"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16sp"
+            android:text="@string/button_add" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/button_update"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16sp"
+            android:text="@string/button_update" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/button_load"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16sp"
+            android:text="@string/button_load" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/button_delete"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16sp"
+            android:text="@string/button_delete" />
+    </androidx.appcompat.widget.LinearLayoutCompat>
 
     <androidx.appcompat.widget.AppCompatButton
-        android:id="@+id/button_save"
+        android:id="@+id/button_delete_all"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/button_save"
         android:layout_marginTop="16sp"
-        />
-    <androidx.appcompat.widget.AppCompatButton
-        android:id="@+id/button_load"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/button_load"
-        android:layout_marginTop="16sp"
-        />
-    <TextView
-        android:id="@+id/text_view_data"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:padding="10sp"
-        android:textSize="30sp"/>
+        android:text="@string/button_delete_all" />
 
-    <androidx.appcompat.widget.AppCompatButton
-        android:id="@+id/button_delete"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/button_delete"
-        android:layout_marginTop="16sp"
-        />
+        <androidx.core.widget.NestedScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <TextView
+                android:id="@+id/text_view_data"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="10sp"
+                android:textSize="20sp" />
+        </androidx.core.widget.NestedScrollView>
 
 </androidx.appcompat.widget.LinearLayoutCompat>
