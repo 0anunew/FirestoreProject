@@ -55,7 +55,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         loadButton.setOnClickListener {
-            loadAllDocumentsAndShow()
+            getAllDocumentsAndShow()
         }
         deleteButton.setOnClickListener {
             deleteData()
@@ -105,9 +105,7 @@ class MainActivity : AppCompatActivity() {
                 return@addSnapshotListener
             }
             snapshot?.let {
-                if (!it.isEmpty()) {
-                    loadAllDocumentsAndShow()
-                }
+                getAllDocumentsAndShow()
             }
         }
     }
@@ -142,13 +140,13 @@ class MainActivity : AppCompatActivity() {
         titleText.text.clear()
         descriptionText.text.clear()
         enableButtons()
-        loadAllDocumentsAndShow()
+        getAllDocumentsAndShow()
     }
 
     fun updateDocumentData() {
         val title = titleText.text.toString()
         val description = descriptionText.text.toString()
-        val docData = Document(title,description)
+        val docData = Document(title, description)
 
         docCollectionRef.get().addOnSuccessListener { result ->
             val documents = result.documents
@@ -165,7 +163,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun loadAllDocumentsAndShow() {
+    fun getAllDocumentsAndShow() {
         docCollectionRef.get().addOnSuccessListener { resultQuerySnapshot ->
             val stringBuilder = StringBuilder()
             val documents = resultQuerySnapshot.documents
@@ -173,7 +171,7 @@ class MainActivity : AppCompatActivity() {
                 val docData = document.toObject(Document::class.java)
                 val title = docData?.title
                 val description = docData?.description
-                val loadText = "Title: $title\nDescription: $description\n"
+                val loadText = "Title: $title\nDescription: $description\n\n"
                 stringBuilder.append(loadText)
             }
             textViewData.text = stringBuilder.toString()
@@ -187,7 +185,7 @@ class MainActivity : AppCompatActivity() {
                 document.reference.delete()
             }
             Toast.makeText(this, "All data deleted", Toast.LENGTH_SHORT).show()
-        } .addOnFailureListener {
+        }.addOnFailureListener {
             Toast.makeText(this, "Error", Toast.LENGTH_SHORT).show()
         }
         disableButtonsAndRefresh()
