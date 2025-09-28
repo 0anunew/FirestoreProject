@@ -166,14 +166,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun loadAllDocumentsAndShow() {
-        docCollectionRef.get().addOnSuccessListener { result ->
+        docCollectionRef.get().addOnSuccessListener { resultQuerySnapshot ->
             val stringBuilder = StringBuilder()
-            val documents = result.documents
+            val documents = resultQuerySnapshot.documents
             for (document in documents) {
                 val docData = document.toObject(Document::class.java)
                 val title = docData?.title
                 val description = docData?.description
-                val loadText = "Title: $title\nDescription: $description\n\n"
+                val loadText = "Title: $title\nDescription: $description\n"
                 stringBuilder.append(loadText)
             }
             textViewData.text = stringBuilder.toString()
@@ -181,8 +181,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun deleteAllDocuments() {
-        docCollectionRef.get().addOnSuccessListener { result ->
-            val documents = result.documents
+        docCollectionRef.get().addOnSuccessListener { resultQuerySnapshot ->
+            val documents = resultQuerySnapshot.documents
             for (document in documents) {
                 document.reference.delete()
             }
@@ -194,8 +194,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun deleteData() {
-        docCollectionRef.get().addOnSuccessListener { result ->
-            val documents = result.documents
+        docCollectionRef.get().addOnSuccessListener { resultQuerySnapshot ->
+            val documents = resultQuerySnapshot.documents
             if (documents.isNotEmpty()) {
                 val lastDocument = documents[documents.size - 1]
                 lastDocument.reference.delete().addOnSuccessListener {
