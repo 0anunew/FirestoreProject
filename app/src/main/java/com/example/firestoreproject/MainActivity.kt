@@ -24,8 +24,10 @@ class MainActivity : AppCompatActivity() {
     private lateinit var loadButton: AppCompatButton
     private lateinit var deleteButton: AppCompatButton
     private lateinit var deleteAllButton: AppCompatButton
-    private val dbStore: FirebaseFirestore = FirebaseFirestore.getInstance()
-    private val docCollectionRef: CollectionReference = dbStore.collection("Collection")
+    private val dbStoreRef: FirebaseFirestore = FirebaseFirestore.getInstance()
+    private val docCollectionRef: CollectionReference = dbStoreRef.collection("Collection")
+
+    private var documentCounter = 1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -110,14 +112,14 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun enableButtons() {
+    private fun enableButtons() {
         loadButton.isEnabled = true
         deleteButton.isEnabled = true
         updateButton.isEnabled = true
         deleteAllButton.isEnabled = true
     }
 
-    fun disableButtonsAndRefresh() {
+    private fun disableButtonsAndRefresh() {
         loadButton.isEnabled = false
         deleteButton.isEnabled = false
         updateButton.isEnabled = false
@@ -125,33 +127,46 @@ class MainActivity : AppCompatActivity() {
         titleText.text.clear()
         descriptionText.text.clear()
         deleteAllButton.isEnabled = false
+        documentCounter = 1
     }
 
-    fun addNewDocumentData() {
+    private fun addNewDocumentData() {
         val title = titleText.text.toString()
         val description = descriptionText.text.toString()
+        val tagMap = mutableMapOf("tag1" to true, "tag2" to false, "tag3" to true)
 
-        val docData = Document(title, description)
-        docCollectionRef.add(docData).addOnSuccessListener {
+        val docData = Document(title, description, documentCounter,tagMap)
+
+        val pathString = "Document $documentCounter"
+        val document = docCollectionRef.document(pathString)
+        document.set(docData).addOnSuccessListener {
+            documentCounter++
             Toast.makeText(this, "Data saved", Toast.LENGTH_SHORT).show()
-        }.addOnSuccessListener {
-            Toast.makeText(this, "Error", Toast.LENGTH_SHORT).show()
+        }.addOnFailureListener {
+            Toast.makeText(this, "Error in save", Toast.LENGTH_SHORT).show()
         }
+
+//        docCollectionRef.add(docData).addOnSuccessListener {
+//            Toast.makeText(this, "Data saved", Toast.LENGTH_SHORT).show()
+//        }.addOnSuccessListener {
+//            Toast.makeText(this, "Error", Toast.LENGTH_SHORT).show()
+//        }
         titleText.text.clear()
         descriptionText.text.clear()
         enableButtons()
         getAllDocumentsAndShow()
     }
 
-    fun updateDocumentData() {
+    private fun updateDocumentData() {
         val title = titleText.text.toString()
         val description = descriptionText.text.toString()
-        val docData = Document(title, description)
 
         docCollectionRef.get().addOnSuccessListener { result ->
             val documents = result.documents
             if (documents.isNotEmpty()) {
                 val lastDocument: DocumentSnapshot = documents[documents.size - 1]
+                val tagsLastDocument: MutableMap<String, Boolean> = lastDocument.get("tags") as MutableMap<String, Boolean>
+                val docData = Document(title, description, documentCounter,tagsLastDocument)
                 lastDocument.reference.set(docData).addOnSuccessListener {
                     Toast.makeText(this, "Data updated", Toast.LENGTH_SHORT).show()
                 }.addOnFailureListener {
@@ -163,22 +178,26 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun getAllDocumentsAndShow() {
-        docCollectionRef.get().addOnSuccessListener { resultQuerySnapshot ->
+    private fun getAllDocumentsAndShow() {
+        docCollectionRef.orderBy("priority").get().addOnSuccessListener { resultQuerySnapshot ->
+
             val stringBuilder = StringBuilder()
             val documents = resultQuerySnapshot.documents
             for (document in documents) {
                 val docData = document.toObject(Document::class.java)
                 val title = docData?.title
                 val description = docData?.description
-                val loadText = "Title: $title\nDescription: $description\n\n"
+                val priorityDoc = docData?.priority
+                val tags = docData?.tags
+                val loadText =
+                    "Title: $title\nDescription: $description \nPriority: $priorityDoc\nTags: $tags\n\n"
                 stringBuilder.append(loadText)
             }
             textViewData.text = stringBuilder.toString()
         }
     }
 
-    fun deleteAllDocuments() {
+    private fun deleteAllDocuments() {
         docCollectionRef.get().addOnSuccessListener { resultQuerySnapshot ->
             val documents = resultQuerySnapshot.documents
             for (document in documents) {
@@ -191,7 +210,7 @@ class MainActivity : AppCompatActivity() {
         disableButtonsAndRefresh()
     }
 
-    fun deleteData() {
+    private fun deleteData() {
         docCollectionRef.get().addOnSuccessListener { resultQuerySnapshot ->
             val documents = resultQuerySnapshot.documents
             if (documents.isNotEmpty()) {
